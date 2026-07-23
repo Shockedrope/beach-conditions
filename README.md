@@ -26,8 +26,35 @@ this file if you want to run it locally instead.
   list — see "Selecting which beaches show up" below.
 - `js/favorites.js` — localStorage-backed favorite beaches, no account
   needed.
+- `js/weather.js` — live current-conditions weather from the National
+  Weather Service (`api.weather.gov`), independent of BCRS report data. See
+  "Live weather" below for why this exists.
 - `js/app.js` — renders the card grid, search/filter, favorites toggle,
   add-beach panel, loading skeletons, and error banners.
+
+## Live weather
+
+BCRS reports aren't published every day for every beach, so a card's
+"Weather" section can reflect conditions from whenever a volunteer last
+submitted a report — sometimes weeks ago. To give a trustworthy
+right-now picture, each card also shows a small **Now** strip with live
+current conditions (temperature, short description, wind) pulled directly
+from the National Weather Service, independent of BCRS report data.
+
+- Data source: `api.weather.gov` (US National Weather Service) — chosen
+  because it's free and needs no API key, which matters for a static,
+  client-side-only site where any embedded key would be public anyway.
+- For each beach, the flow is: look up its forecast grid point → find the
+  nearest observation station → read that station's latest observation. If
+  the station has no recent/complete reading, it falls back to the hourly
+  forecast's current period.
+- Loads in the background after the report cards render, so it never
+  delays the initial page load, and fills in per-card as each beach
+  resolves without disturbing scroll position or any section you have
+  expanded.
+- If a beach's weather can't be fetched, that one card just shows "Current
+  weather unavailable" — it's a supplementary enhancement, not something
+  that should ever block or break the rest of the dashboard.
 
 ## Selecting which beaches show up
 
@@ -108,6 +135,8 @@ significantly.
   Purple), most prominent visual element per card
 - Red-tide-relevant indicators (respiratory irritation, dead fish, water
   color) surfaced as chips when present
+- Live current weather (temperature, conditions, wind) per beach from the
+  National Weather Service, independent of BCRS report freshness
 - Collapsible sections per card for weather, surf, and water detail
 - Clear "reported X ago" timestamp (reports are not real-time); if a
   report isn't from today, the flag color grays out and a ⚠️ appears next
@@ -124,7 +153,8 @@ significantly.
 
 All beach condition data is sourced from Mote Marine Laboratory's Beach
 Conditions Reporting System via `visitbeaches.org`. This project is not
-affiliated with or endorsed by Mote Marine Laboratory.
+affiliated with or endorsed by Mote Marine Laboratory. Live current-weather
+data is sourced from the U.S. National Weather Service (`api.weather.gov`).
 
 ## Development
 

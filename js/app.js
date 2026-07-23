@@ -2,6 +2,7 @@ import { fetchBeaches, tryDiscoverBeachIds } from "./api.js";
 import { BEACH_IDS } from "./beaches.config.js";
 import { isFavorite, toggleFavorite, getFavoriteIds } from "./favorites.js";
 import { getCustomBeachIds, addCustomBeachId, removeCustomBeachId, isCustomBeachId } from "./customBeaches.js";
+import { fetchWeatherForBeaches } from "./weather.js";
 
 const grid = document.getElementById("grid");
 const searchInput = document.getElementById("search-input");
@@ -17,6 +18,7 @@ const addBeachError = document.getElementById("add-beach-error");
 let reports = []; // flattened beach reports, current in-memory state
 let searchTerm = "";
 let favoritesOnly = false;
+let weatherByBeachId = {}; // live NWS current-conditions, keyed by beachId; persists across re-renders
 
 function showBanner(message) {
   statusBanner.textContent = message;
@@ -90,6 +92,46 @@ function sortReports(list) {
     const latB = typeof b.latitude === "number" ? b.latitude : -Infinity;
     return latB - latA;
   });
+}
+
+function formatWeatherTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+// Renders just the dynamic part of the live-weather strip (loading /
+// unavailable / actual conditions), so it can be regenerated in place both
+// on initial card render and later via a targeted DOM update as each
+// beach's weather resolves, without touching the rest of the card.
+function weatherContentHtml(beachId) {
+  const w = weatherByBeachId[beachId];
+  if (!w) {
+    return `<span class="weather-loading">Fetching current weather…</span>`;
+  }
+  if (w.error) {
+    return `<span class="weather-unavailable">Current weather unavailable</span>`;
+  }
+
+  const parts = [];
+  if (typeof w.tempF === "number") parts.push(`${w.tempF}°F`);
+  if (w.conditions) parts.push(escapeHtml(w.conditions));
+  const windBits = [w.windSpeedMph ? `${w.windSpeedMph} mph` : null, w.windDirection].filter(Boolean).join(" ");
+  if (windBits) parts.push(`Wind ${escapeHtml(windBits)}`);
+
+  const asOf = w.observedAt ? formatWeatherTime(w.observedAt) : null;
+  return `
+    <span class="weather-emoji">${w.emoji || "🌤️"}</span>
+    <span class="weather-text">${parts.join(" · ") || "No data"}</span>
+    ${asOf ? `<span class="weather-asof">as of ${asOf}</span>` : ""}
+  `;
+}
+
+// Updates one card's weather strip in place (if that card is currently
+// rendered -- it may be filtered out, which is fine, we just skip it).
+function updateWeatherSlot(beachId) {
+  const el = grid.querySelector(`.weather-content[data-weather-for="${CSS.escape(String(beachId))}"]`);
+  if (el) el.innerHTML = weatherContentHtml(beachId);
 }
 
 function kv(label, value) {
@@ -191,6 +233,10 @@ function renderCard(report) {
     ${report.flag.description ? `<div class="flag-description">${escapeHtml(report.flag.description)}</div>` : ""}
     ${redTideChips.length ? `<div class="redtide-row">${redTideChips.map((c) => `<span class="redtide-chip">${c}</span>`).join("")}</div>` : ""}
     <div class="timestamp">${stale ? `<span class="stale-warning" title="This report is not from today -- conditions may have changed">⚠️</span>` : ""}${escapeHtml(formatTimestamp(report.reportedAt))}</div>
+    <div class="weather-live">
+      <span class="weather-label">Now</span>
+      <span class="weather-content" data-weather-for="${escapeHtml(String(report.beachId))}">${weatherContentHtml(report.beachId)}</span>
+    </div>
     <div class="card-body">
       ${!report.hasReport ? '<div class="no-data">No reports in the last 3 days.</div>' : ""}
       ${weatherKv ? `<details class="section"><summary>Weather</summary><div class="kv-grid">${weatherKv}</div></details>` : ""}
@@ -287,6 +333,24 @@ async function loadAll({ skipCache = false } = {}) {
   }
 
   applyFilters();
+  loadWeather(reports, { skipCache });
+}
+
+// Fetches live current-conditions weather for each beach and patches it
+// into already-rendered cards as each one resolves. Intentionally not
+// awaited by callers -- this runs in the background so it never delays the
+// initial (report-based) render, and doesn't disturb scroll position or
+// any open <details> sections the way a full grid rebuild would.
+async function loadWeather(list, { skipCache = false } = {}) {
+  const targets = list.filter((r) => !r.error && typeof r.latitude === "number" && typeof r.longitude === "number");
+  await fetchWeatherForBeaches(targets, {
+    concurrency: 4,
+    skipCache,
+    onEach: (beachId, weather) => {
+      weatherByBeachId[beachId] = weather;
+      updateWeatherSlot(beachId);
+    },
+  });
 }
 
 let searchDebounce;

@@ -302,6 +302,48 @@ main {
   padding: 0.6rem 1rem 0;
 }
 
+.weather-live {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin: 0.6rem 1rem 0;
+  padding: 0.45rem 0.6rem;
+  background: rgba(11, 110, 140, 0.08);
+  border: 1px solid rgba(11, 110, 140, 0.18);
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+@media (prefers-color-scheme: dark) {
+  .weather-live { background: rgba(77, 184, 221, 0.12); border-color: rgba(77, 184, 221, 0.28); }
+}
+
+.weather-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.weather-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.weather-emoji { font-size: 1rem; line-height: 1; }
+.weather-text { font-weight: 500; color: var(--text); }
+.weather-asof { color: var(--text-muted); font-size: 0.72rem; margin-left: auto; }
+.weather-loading,
+.weather-unavailable {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
 .card-body {
   padding: 0.5rem 1rem 1rem;
   flex: 1;
