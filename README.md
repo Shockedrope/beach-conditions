@@ -44,10 +44,12 @@ Then open `http://localhost:8000`.
 There's no confirmed "list/search all beaches" API query (see limitation #1
 below), so beach selection works in two layers:
 
-1. **Defaults** — `js/beaches.config.js`, currently the confirmed southern
-   half of the Lido Key → Boca Grande corridor (Englewood Beach, Stump Pass
-   Beach State Park, and both Gasparilla Island entries). Edit this file
-   directly to change the shipped defaults.
+1. **Defaults** — `js/beaches.config.js`, the full Lido Key → Boca Grande
+   corridor (14 beaches: Lido Key, Ted Sperling Park, Siesta Beach, Turtle
+   Beach, Nokomis Beach, North Jetty, Venice Beach, Sharky's, Caspersen
+   Beach, Manasota Beach, Englewood Beach, Stump Pass Beach State Park,
+   Gasparilla Island Lighthouse, Gasparilla Island State Park). Edit this
+   file directly to change the shipped defaults.
 2. **Your own additions** — click **+ Add Beach** in the top bar and enter a
    numeric beach ID. Find one by opening visitbeaches.org, clicking a beach
    on the map, and reading the `id` out of the `GetBeach` request in
@@ -55,10 +57,9 @@ below), so beach selection works in two layers:
    layered on top of the defaults, and each gets a ✕ button on its card to
    remove it again.
 
-The northern part of the Lido → Boca Grande corridor (Lido Key, Siesta Key,
-Nokomis, Venice, Manasota Key) doesn't have confirmed IDs yet — add them via
-+ Add Beach once you've looked them up, or contribute them back to
-`beaches.config.js`.
+Cards are sorted by most recent report date first, then north-to-south by
+latitude within the same date (see `sortReports()` in `js/app.js`) — so it
+doesn't matter what order beaches are listed in `beaches.config.js`.
 
 ## Known limitations
 
@@ -121,6 +122,8 @@ significantly.
 - Clear "reported X ago" timestamp (reports are not real-time); if a
   report isn't from today, the flag color grays out and a ⚠️ appears next
   to the timestamp, so a stale "Green" doesn't read as a current all-clear
+- Sorted by most recent report date first, then north-to-south by latitude
+  within the same date
 - Search/filter by beach or city name
 - Favorite beaches (localStorage, no account)
 - Add/remove beaches by ID at runtime (localStorage, no account)

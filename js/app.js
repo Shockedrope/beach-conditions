@@ -68,6 +68,30 @@ function isReportToday(iso) {
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
 }
 
+// Calendar-day timestamp (time-of-day stripped) for grouping reports by
+// date rather than exact instant -- two beaches reported an hour apart on
+// the same day should land in the same "day bucket" for sorting purposes.
+// Missing/invalid dates sort last (oldest).
+function dateOnlyValue(iso) {
+  if (!iso) return -Infinity;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return -Infinity;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+// Sort by most recent report date first, then north-to-south (higher
+// latitude first) within the same date. Reports with no date/location
+// (errors, no-report beaches) sort to the bottom.
+function sortReports(list) {
+  return [...list].sort((a, b) => {
+    const dateDiff = dateOnlyValue(b.reportedAt) - dateOnlyValue(a.reportedAt);
+    if (dateDiff !== 0) return dateDiff;
+    const latA = typeof a.latitude === "number" ? a.latitude : -Infinity;
+    const latB = typeof b.latitude === "number" ? b.latitude : -Infinity;
+    return latB - latA;
+  });
+}
+
 function kv(label, value) {
   if (value === null || value === undefined || value === "") return "";
   return `<div class="k">${label}</div><div class="v">${escapeHtml(String(value))}</div>`;
@@ -245,11 +269,12 @@ async function loadAll({ skipCache = false } = {}) {
   renderSkeletons(idEntries.length);
 
   const ids = idEntries.map((b) => b.id);
-  reports = await fetchBeaches(ids, {
+  const fetched = await fetchBeaches(ids, {
     concurrency: 6,
     skipCache,
     onProgress: () => {}, // could wire up a progress bar; skeletons are enough for now
   });
+  reports = sortReports(fetched);
 
   const failedCount = reports.filter((r) => r.error).length;
   if (failedCount === reports.length && reports.length > 0) {
