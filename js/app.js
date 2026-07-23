@@ -229,14 +229,14 @@ function renderCard(report) {
         ${removable ? `<button class="remove-btn" title="Remove this beach" data-action="remove">✕</button>` : ""}
       </div>
     </div>
-    <div class="flag-badge flag-${report.flag.cssClass}${stale ? " stale" : ""}">${escapeHtml(report.flag.label || "No flag data")}</div>
-    ${report.flag.description ? `<div class="flag-description">${escapeHtml(report.flag.description)}</div>` : ""}
-    ${redTideChips.length ? `<div class="redtide-row">${redTideChips.map((c) => `<span class="redtide-chip">${c}</span>`).join("")}</div>` : ""}
-    <div class="timestamp">${stale ? `<span class="stale-warning" title="This report is not from today -- conditions may have changed">⚠️</span>` : ""}${escapeHtml(formatTimestamp(report.reportedAt))}</div>
     <div class="weather-live">
       <span class="weather-label">Now</span>
       <span class="weather-content" data-weather-for="${escapeHtml(String(report.beachId))}">${weatherContentHtml(report.beachId)}</span>
     </div>
+    <div class="flag-badge flag-${report.flag.cssClass}${stale ? " stale" : ""}">${escapeHtml(report.flag.label || "No flag data")}</div>
+    ${report.flag.description ? `<div class="flag-description">${escapeHtml(report.flag.description)}</div>` : ""}
+    ${redTideChips.length ? `<div class="redtide-row">${redTideChips.map((c) => `<span class="redtide-chip">${c}</span>`).join("")}</div>` : ""}
+    <div class="timestamp">${stale ? `<span class="stale-warning" title="This report is not from today -- conditions may have changed">⚠️</span>` : ""}${escapeHtml(formatTimestamp(report.reportedAt))}</div>
     <div class="card-body">
       ${!report.hasReport ? '<div class="no-data">No reports in the last 3 days.</div>' : ""}
       ${weatherKv ? `<details class="section"><summary>Weather</summary><div class="kv-grid">${weatherKv}</div></details>` : ""}
