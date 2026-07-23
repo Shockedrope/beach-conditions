@@ -103,6 +103,55 @@ header.top-bar {
   color: #fff;
 }
 
+.add-beach-panel {
+  display: none;
+  max-width: 1200px;
+  margin: 0.6rem auto 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+.add-beach-panel.visible { display: block; }
+
+#add-beach-form {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 320px;
+}
+
+#add-beach-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.add-beach-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0;
+  max-width: 520px;
+}
+.add-beach-hint a { color: var(--accent); }
+.add-beach-hint code {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
+  font-size: 0.75rem;
+}
+
+.add-beach-error {
+  font-size: 0.8rem;
+  color: var(--flag-red);
+  margin: 0.4rem 0 0;
+  display: none;
+}
+.add-beach-error.visible { display: block; }
+
 main {
   max-width: 1200px;
   margin: 0 auto;
@@ -147,6 +196,11 @@ main {
 .card.flag-purple { border-top-color: var(--flag-purple); }
 .card.flag-unknown { border-top-color: var(--flag-unknown); }
 
+/* Stale reports (not from today): gray out the flag color so it doesn't
+   read as a current safety status. Rules declared after the flag-color
+   rules above so they win at equal specificity. */
+.card.stale { border-top-color: var(--flag-unknown); }
+
 .card-header {
   padding: 0.9rem 1rem 0.6rem;
   display: flex;
@@ -179,6 +233,23 @@ main {
 }
 .fav-btn.active { color: #e0a800; }
 
+.card-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.remove-btn {
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0.15rem 0.2rem;
+}
+.remove-btn:hover { color: var(--flag-red); }
+
 .flag-badge {
   display: inline-flex;
   align-items: center;
@@ -194,6 +265,11 @@ main {
 .flag-badge.flag-double-red { background: var(--flag-double-red); }
 .flag-badge.flag-purple { background: var(--flag-purple); }
 .flag-badge.flag-unknown { background: var(--flag-unknown); }
+.flag-badge.stale { background: var(--flag-unknown); color: #fff; }
+
+.stale-warning {
+  margin-right: 0.3rem;
+}
 
 .flag-description {
   font-size: 0.8rem;

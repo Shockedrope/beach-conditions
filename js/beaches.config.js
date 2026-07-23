@@ -1,19 +1,34 @@
-// Manually curated list of BCRS beach IDs to display on the dashboard.
+// Manually curated list of BCRS beach IDs to display on the dashboard by
+// default. Users can add more at runtime via the "+ Add Beach" control in
+// the UI (stored in localStorage, see js/customBeaches.js) without editing
+// this file -- that's the only way to add a beach right now, since the API
+// has no confirmed "list all beaches" query (see README.md).
 //
-// WHY THIS FILE EXISTS: the visitbeaches.org GraphQL API does not expose a
-// known "list all beaches" query (see README.md, "Known limitations" section
-// for what was tried). Until a listing query is confirmed, beaches must be
-// added here by ID. `label` is only a fallback shown before the real API
-// response arrives (or if a fetch fails) -- the authoritative name always
-// comes from `beach.name` in the API response.
+// Ordered roughly north -> south along the barrier islands from Lido Key
+// down to Boca Grande / Gasparilla Island, per request. IDs were only
+// confirmed for the southern half of that stretch (via real API responses);
+// the northern beaches are still missing real IDs -- see the TODO block
+// below for how to fill them in.
 //
-// To find more beach IDs: open visitbeaches.org, pick a beach on the map,
-// and read the `id` variable out of the GetBeach request in DevTools ->
-// Network -> the graphql request's payload.
+// To find a beach ID: open visitbeaches.org, click a beach on the map, and
+// read the `id` variable out of the GetBeach request in DevTools -> Network.
 export const BEACH_IDS = [
-  { id: "25", label: "Beach #25" },
-  { id: "42", label: "Beach #42" },
-  { id: "67", label: "Beach #67" },
-  { id: "15", label: "Beach #15" },
-  { id: "26", label: "Beach #26" },
+  // --- TODO: missing IDs for the northern part of the corridor ---
+  // Add these once you have real IDs (use the "+ Add Beach" button in the
+  // UI, or add entries here in the same { id, label } shape):
+  //   Lido Key (Lido Beach / South Lido Park)
+  //   Siesta Key (Siesta Beach / Turtle Beach)
+  //   Casey Key / Nokomis Beach
+  //   Venice Beach (North Jetty / Brohard Paw Park)
+  //   Manasota Beach
+
+  // --- Confirmed via live API response ---
+  { id: "42", label: "Englewood Beach" },
+  { id: "67", label: "Stump Pass Beach State Park" },
+  { id: "25", label: "Gasparilla Island State Park (South Lighthouse)" },
+  { id: "26", label: "Gasparilla Island Lighthouse" },
 ];
+
+// Just south of Boca Grande Pass -- outside the requested Lido-to-Boca-Grande
+// range, so left out of the default list. Add it back (here or via the "+
+// Add Beach" UI) if you want it included: { id: "15", label: "Captiva" }

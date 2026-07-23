@@ -13,8 +13,22 @@
       <div class="controls">
         <input id="search-input" type="search" placeholder="Search beach or city..." autocomplete="off" />
         <button id="favorites-toggle" class="toggle-btn" type="button">★ Favorites</button>
+        <button id="add-beach-toggle" class="toggle-btn" type="button">+ Add Beach</button>
         <button id="refresh-btn" class="toggle-btn" type="button" title="Re-fetch all beaches">⟳ Refresh</button>
       </div>
+    </div>
+    <div id="add-beach-panel" class="add-beach-panel">
+      <form id="add-beach-form">
+        <input id="add-beach-input" type="text" inputmode="numeric" placeholder="Beach ID, e.g. 25" autocomplete="off" />
+        <button type="submit" class="toggle-btn">Add</button>
+      </form>
+      <p class="add-beach-hint">
+        There's no beach-search API yet, so beaches are added by numeric ID. Find one by opening
+        <a href="https://visitbeaches.org" target="_blank" rel="noopener noreferrer">visitbeaches.org</a>,
+        clicking a beach on the map, and reading the <code>id</code> in DevTools &rarr; Network &rarr; the
+        <code>GetBeach</code> request.
+      </p>
+      <p id="add-beach-error" class="add-beach-error"></p>
     </div>
   </header>
 

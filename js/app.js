@@ -1,12 +1,18 @@
 import { fetchBeaches, tryDiscoverBeachIds } from "./api.js";
 import { BEACH_IDS } from "./beaches.config.js";
 import { isFavorite, toggleFavorite, getFavoriteIds } from "./favorites.js";
+import { getCustomBeachIds, addCustomBeachId, removeCustomBeachId, isCustomBeachId } from "./customBeaches.js";
 
 const grid = document.getElementById("grid");
 const searchInput = document.getElementById("search-input");
 const favoritesToggle = document.getElementById("favorites-toggle");
 const refreshBtn = document.getElementById("refresh-btn");
 const statusBanner = document.getElementById("status-banner");
+const addBeachToggle = document.getElementById("add-beach-toggle");
+const addBeachPanel = document.getElementById("add-beach-panel");
+const addBeachForm = document.getElementById("add-beach-form");
+const addBeachInput = document.getElementById("add-beach-input");
+const addBeachError = document.getElementById("add-beach-error");
 
 let reports = []; // flattened beach reports, current in-memory state
 let searchTerm = "";
@@ -51,6 +57,17 @@ function formatTimestamp(iso) {
   return `Reported ${rel} (${d.toLocaleString()})`;
 }
 
+// Whether a report's date matches today's calendar date in the viewer's
+// local timezone (not just "within the last 24h" -- a report from 11pm
+// yesterday reads as stale even if it's only a few hours old).
+function isReportToday(iso) {
+  if (!iso) return false;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return false;
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+
 function kv(label, value) {
   if (value === null || value === undefined || value === "") return "";
   return `<div class="k">${label}</div><div class="v">${escapeHtml(String(value))}</div>`;
@@ -66,20 +83,33 @@ function renderCard(report) {
   const card = document.createElement("div");
 
   if (report.error) {
+    const removableOnError = isCustomBeachId(report.beachId);
     card.className = "card flag-unknown";
     card.innerHTML = `
       <div class="card-header">
         <div class="card-title"><h2>${escapeHtml(report.beachId)}</h2><div class="sub">Beach ID ${escapeHtml(report.beachId)}</div></div>
+        ${removableOnError ? `<button class="remove-btn" title="Remove this beach" data-action="remove">✕</button>` : ""}
       </div>
       <div class="card-error">Couldn't load this beach: ${escapeHtml(report.error)}</div>
     `;
+    const removeBtn = card.querySelector('[data-action="remove"]');
+    if (removeBtn) {
+      removeBtn.addEventListener("click", () => {
+        removeCustomBeachId(report.beachId);
+        reports = reports.filter((r) => r.beachId !== report.beachId);
+        applyFilters();
+      });
+    }
     return card;
   }
 
-  card.className = `card flag-${report.flag.cssClass}`;
+  const stale = report.hasReport && !isReportToday(report.reportedAt);
+
+  card.className = `card flag-${report.flag.cssClass}${stale ? " stale" : ""}`;
   card.dataset.beachId = report.beachId;
 
   const fav = isFavorite(report.beachId);
+  const removable = isCustomBeachId(report.beachId);
 
   const redTideChips = [];
   if (isNotable(report.respiratoryIrritation)) {
@@ -128,12 +158,15 @@ function renderCard(report) {
         <h2>${escapeHtml(report.beachName || `Beach #${report.beachId}`)}</h2>
         <div class="sub">${escapeHtml([report.city, report.state].filter(Boolean).join(", "))}</div>
       </div>
-      <button class="fav-btn ${fav ? "active" : ""}" title="Toggle favorite" data-action="fav">${fav ? "★" : "☆"}</button>
+      <div class="card-actions">
+        <button class="fav-btn ${fav ? "active" : ""}" title="Toggle favorite" data-action="fav">${fav ? "★" : "☆"}</button>
+        ${removable ? `<button class="remove-btn" title="Remove this beach" data-action="remove">✕</button>` : ""}
+      </div>
     </div>
-    <div class="flag-badge flag-${report.flag.cssClass}">${escapeHtml(report.flag.label || "No flag data")}</div>
+    <div class="flag-badge flag-${report.flag.cssClass}${stale ? " stale" : ""}">${escapeHtml(report.flag.label || "No flag data")}</div>
     ${report.flag.description ? `<div class="flag-description">${escapeHtml(report.flag.description)}</div>` : ""}
     ${redTideChips.length ? `<div class="redtide-row">${redTideChips.map((c) => `<span class="redtide-chip">${c}</span>`).join("")}</div>` : ""}
-    <div class="timestamp">${escapeHtml(formatTimestamp(report.reportedAt))}</div>
+    <div class="timestamp">${stale ? `<span class="stale-warning" title="This report is not from today -- conditions may have changed">⚠️</span>` : ""}${escapeHtml(formatTimestamp(report.reportedAt))}</div>
     <div class="card-body">
       ${!report.hasReport ? '<div class="no-data">No reports in the last 3 days.</div>' : ""}
       ${weatherKv ? `<details class="section"><summary>Weather</summary><div class="kv-grid">${weatherKv}</div></details>` : ""}
@@ -149,6 +182,15 @@ function renderCard(report) {
     card.querySelector('[data-action="fav"]').classList.toggle("active", nowFav);
     if (favoritesOnly) applyFilters();
   });
+
+  const removeBtn = card.querySelector('[data-action="remove"]');
+  if (removeBtn) {
+    removeBtn.addEventListener("click", () => {
+      removeCustomBeachId(report.beachId);
+      reports = reports.filter((r) => r.beachId !== report.beachId);
+      applyFilters();
+    });
+  }
 
   return card;
 }
@@ -194,6 +236,12 @@ async function loadAll({ skipCache = false } = {}) {
     idEntries = discovered;
   }
 
+  // User-added beach IDs are always layered on top, even if a beach-listing
+  // query was discovered -- they're an explicit ask, not a fallback.
+  const existingIds = new Set(idEntries.map((b) => b.id));
+  const customIds = getCustomBeachIds().filter((id) => !existingIds.has(id));
+  idEntries = [...idEntries, ...customIds.map((id) => ({ id, label: `Beach #${id}` }))];
+
   renderSkeletons(idEntries.length);
 
   const ids = idEntries.map((b) => b.id);
@@ -234,6 +282,25 @@ favoritesToggle.addEventListener("click", () => {
 
 refreshBtn.addEventListener("click", () => {
   loadAll({ skipCache: true });
+});
+
+addBeachToggle.addEventListener("click", () => {
+  const nowVisible = addBeachPanel.classList.toggle("visible");
+  addBeachToggle.classList.toggle("active", nowVisible);
+  if (nowVisible) addBeachInput.focus();
+});
+
+addBeachForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  addBeachError.classList.remove("visible");
+  try {
+    addCustomBeachId(addBeachInput.value);
+    addBeachInput.value = "";
+    loadAll();
+  } catch (err) {
+    addBeachError.textContent = err.message;
+    addBeachError.classList.add("visible");
+  }
 });
 
 loadAll();
