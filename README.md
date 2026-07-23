@@ -5,22 +5,12 @@ Conditions Reporting System (BCRS)](https://visitbeaches.org) — built
 because the official site is an interactive map that's slow to scan across
 multiple beaches at a glance.
 
+**Live dashboard: https://shockedrope.github.io/beach-conditions/**
+
 This is a static, no-build, no-backend site: plain HTML/CSS/JS. The API has
 open CORS and needs no auth, so the browser talks to it directly — there's
-nothing to deploy or run server-side.
-
-## Running it
-
-Because the app fetches from `https://api.visitbeaches.org`, some browsers
-restrict `fetch()` from a page opened directly via `file://`. Serve the
-folder over a trivial local static server instead:
-
-```bash
-python3 -m http.server 8000
-# or: npx serve .
-```
-
-Then open `http://localhost:8000`.
+nothing to deploy or run server-side. See "Development" at the bottom of
+this file if you want to run it locally instead.
 
 ## How it works
 
@@ -135,3 +125,19 @@ significantly.
 All beach condition data is sourced from Mote Marine Laboratory's Beach
 Conditions Reporting System via `visitbeaches.org`. This project is not
 affiliated with or endorsed by Mote Marine Laboratory.
+
+## Development
+
+Most people should just use the live dashboard linked at the top. If you're
+changing the code and want to run it locally:
+
+Because the app fetches from `https://api.visitbeaches.org`, some browsers
+restrict `fetch()` from a page opened directly via `file://`. Serve the
+folder over a trivial local static server instead:
+
+```bash
+python3 -m http.server 8000
+# or: npx serve .
+```
+
+Then open `http://localhost:8000`.
