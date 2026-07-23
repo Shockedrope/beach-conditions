@@ -217,6 +217,21 @@ main {
   overflow-wrap: break-word;
 }
 
+.beach-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+.beach-name-link:hover,
+.beach-name-link:focus-visible {
+  text-decoration: underline;
+  color: var(--accent);
+}
+.beach-name-link::after {
+  content: " 📍";
+  font-size: 0.75em;
+  opacity: 0.6;
+}
+
 .card-title .sub {
   font-size: 0.8rem;
   color: var(--text-muted);

@@ -145,6 +145,10 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function googleMapsUrl(lat, lon) {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+}
+
 function renderCard(report) {
   const card = document.createElement("div");
 
@@ -221,7 +225,11 @@ function renderCard(report) {
   card.innerHTML = `
     <div class="card-header">
       <div class="card-title">
-        <h2>${escapeHtml(report.beachName || `Beach #${report.beachId}`)}</h2>
+        <h2>${
+          typeof report.latitude === "number" && typeof report.longitude === "number"
+            ? `<a class="beach-name-link" href="${googleMapsUrl(report.latitude, report.longitude)}" target="_blank" rel="noopener noreferrer" title="Open in Google Maps">${escapeHtml(report.beachName || `Beach #${report.beachId}`)}</a>`
+            : escapeHtml(report.beachName || `Beach #${report.beachId}`)
+        }</h2>
         <div class="sub">${escapeHtml([report.city, report.state].filter(Boolean).join(", "))}</div>
       </div>
       <div class="card-actions">
