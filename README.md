@@ -143,6 +143,9 @@ significantly.
   to the timestamp, so a stale "Green" doesn't read as a current all-clear
 - Sorted by most recent report date first, then north-to-south by latitude
   within the same date
+- Beach name links to its location in Google Maps; the report timestamp
+  links to that specific report on visitbeaches.org
+  (`/beach/{beachId}/report/{reportId}`)
 - Search/filter by beach or city name
 - Favorite beaches (localStorage, no account)
 - Add/remove beaches by ID at runtime (localStorage, no account)

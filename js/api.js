@@ -217,6 +217,7 @@ function flattenBeachReport(beach) {
     state: beach.city && beach.city.state ? beach.city.state.abbreviation : null,
     images: (beach.imageAttachments || []).map((a) => a.thumbnailUrl || a.previewUrl || a.originalUrl),
     hasReport: Boolean(latest),
+    reportId: latest ? latest.id : null,
     reportedAt: latest ? latest.createdAt : null,
     categories: {},
     flag: { value: null, label: null, description: null, cssClass: "unknown" },

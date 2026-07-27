@@ -149,6 +149,10 @@ function googleMapsUrl(lat, lon) {
   return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
 }
 
+function bcrsReportUrl(beachId, reportId) {
+  return `https://visitbeaches.org/beach/${beachId}/report/${reportId}`;
+}
+
 function renderCard(report) {
   const card = document.createElement("div");
 
@@ -244,7 +248,11 @@ function renderCard(report) {
     <div class="flag-badge flag-${report.flag.cssClass}${stale ? " stale" : ""}">${escapeHtml(report.flag.label || "No flag data")}</div>
     ${report.flag.description ? `<div class="flag-description">${escapeHtml(report.flag.description)}</div>` : ""}
     ${redTideChips.length ? `<div class="redtide-row">${redTideChips.map((c) => `<span class="redtide-chip">${c}</span>`).join("")}</div>` : ""}
-    <div class="timestamp">${stale ? `<span class="stale-warning" title="This report is not from today -- conditions may have changed">⚠️</span>` : ""}${escapeHtml(formatTimestamp(report.reportedAt))}</div>
+    <div class="timestamp">${stale ? `<span class="stale-warning" title="This report is not from today -- conditions may have changed">⚠️</span>` : ""}${
+      report.reportId
+        ? `<a class="report-link" href="${bcrsReportUrl(report.beachId, report.reportId)}" target="_blank" rel="noopener noreferrer" title="View this report on visitbeaches.org">${escapeHtml(formatTimestamp(report.reportedAt))}</a>`
+        : escapeHtml(formatTimestamp(report.reportedAt))
+    }</div>
     <div class="card-body">
       ${!report.hasReport ? '<div class="no-data">No reports in the last 3 days.</div>' : ""}
       ${weatherKv ? `<details class="section"><summary>Weather</summary><div class="kv-grid">${weatherKv}</div></details>` : ""}
